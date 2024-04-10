@@ -1,0 +1,49 @@
+version: '3.8'
+services:
+  php:
+    container_name: php-symfony-local
+    build:
+      context: php
+      dockerfile: Dockerfile
+    volumes:
+      - './../symfony-local:/var/www/html'
+    ports:
+      - '9000:9000'
+    depends_on:
+        - mysql
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker.internal
+      PHP_IDE_CONFIG: "serverName=docker"
+    networks:
+      - symfony_local_network
+
+  nginx:
+    container_name: nginx-symfony-local
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    volumes:
+      - './../symfony-local:/var/www/html'
+    ports:
+      - "80:80"
+    links:
+      - php
+    depends_on:
+      - php
+    networks:
+      - symfony_local_network
+
+  mysql:
+    container_name: mysql-symfony-local
+    platform: linux/x86_64
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=symfony_local
+    networks:
+      - symfony_local_network
+
+networks:
+  symfony_local_network:
